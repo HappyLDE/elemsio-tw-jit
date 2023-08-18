@@ -1,9 +1,16 @@
 const express = require('express')
+const cors = require('cors')
 const postcss = require('postcss')
 const tailwindcss = require('tailwindcss')
 require('dotenv').config()
 
 const app = express()
+app.use(cors())
+
+// app.use(cors({
+//   origin: 'http://localhost:3000'
+// }));
+
 const PORT = Number(process.env.PORT) || 3335
 const CACHE_SIZE = Number(process.env.CACHE_SIZE) || 500
 
@@ -15,17 +22,7 @@ const cache = new LRUCache(cacheOptions)
 app.use(express.json())
 
 app.post('/generate', async (req, res) => {
-  const { key, html } = req.body
-
-  if (!key) {
-    return res.status(400).send('server_key_is_required')
-  }
-  console.log('CACHE_SIZE', process.env.SERVER_KEY)
-  console.log('key', key)
-  console.log('process.env.SERVER_KEY', process.env.SERVER_KEY)
-  if (key != process.env.SERVER_KEY) {
-    return res.status(400).send('server_key_is_invalid')
-  }
+  const { html } = req.body
 
   if (!html) {
     return res.status(400).send('html_is_required')
