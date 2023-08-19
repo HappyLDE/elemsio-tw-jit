@@ -11,7 +11,7 @@ app.use(cors())
 //   origin: 'http://localhost:3000'
 // }));
 
-const PORT = Number(process.env.PORT) || 3335
+const PORT = Number(process.env.PORT) || 3336
 const CACHE_SIZE = Number(process.env.CACHE_SIZE) || 500
 
 const { LRUCache } = require('lru-cache')
