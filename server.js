@@ -5,8 +5,8 @@ const tailwindcss = require('tailwindcss')
 require('dotenv').config()
 
 const app = express()
-app.use(cors())
 
+app.use(cors())
 // app.use(cors({
 //   origin: 'http://localhost:3000'
 // }));
@@ -20,6 +20,10 @@ const cacheOptions = { max: CACHE_SIZE }
 const cache = new LRUCache(cacheOptions)
 
 app.use(express.json())
+
+app.get('/', function (req, res) {
+  res.send('Hello friend')
+})
 
 app.post('/generate', async (req, res) => {
   const { html } = req.body

@@ -4,3 +4,11 @@ content-type: application/json
 {
     "html": "<div class='bg-blue-500 bg-red-500 hover:text-red-400'>test</div>"
 }
+
+####
+POST https://twjit.elems.io/generate
+content-type: application/json
+
+{
+    "html": "<div class='bg-blue-500 bg-red-500 hover:text-red-400'>test</div>"
+}
