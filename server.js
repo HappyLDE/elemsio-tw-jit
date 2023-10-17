@@ -26,10 +26,16 @@ app.get('/', function (req, res) {
 })
 
 app.post('/generate', async (req, res) => {
-  const { html } = req.body
+  const { html, includeBase } = req.body
 
   if (!html) {
     return res.status(400).send('html_is_required')
+  }
+
+  let stylesToProcess = '@import "tailwindcss/components"; @import "tailwindcss/utilities";'
+
+  if (includeBase) {
+    stylesToProcess = '@import "tailwindcss/base";' + stylesToProcess
   }
 
   // Check if the result is in the cache
@@ -44,12 +50,9 @@ app.post('/generate', async (req, res) => {
         mode: 'jit',
         content: [{ raw: html, extension: 'html' }],
       }),
-    ]).process(
-      '@import "tailwindcss/base"; @import "tailwindcss/components"; @import "tailwindcss/utilities";',
-      {
-        from: undefined,
-      }
-    )
+    ]).process(stylesToProcess, {
+      from: undefined,
+    })
 
     const css = result.css
     cache.set(html, css)
