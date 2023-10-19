@@ -26,22 +26,29 @@ app.get('/', function (req, res) {
 })
 
 app.post('/generate', async (req, res) => {
-  const { html, includeBase } = req.body
+  const { html, includeBase, extraClasses } = req.body
 
   if (!html) {
     return res.status(400).send('html_is_required')
   }
 
-  let stylesToProcess = '@import "tailwindcss/components"; @import "tailwindcss/utilities";'
+  // Check if the result is in the cache
+  const cacheKey = includeBase
+    ? `base_${html}_${extraClasses || ''}`
+    : `${html}_${extraClasses || ''}`
+  const cachedResult = cache.get(cacheKey)
+  if (cachedResult) {
+    return res.send(cachedResult)
+  }
 
+  let stylesToProcess = '@import "tailwindcss/components"; @import "tailwindcss/utilities";'
   if (includeBase) {
     stylesToProcess = '@import "tailwindcss/base";' + stylesToProcess
   }
 
-  // Check if the result is in the cache
-  const cachedResult = cache.get(html)
-  if (cachedResult) {
-    return res.send(cachedResult)
+  // Add the extra styles (styles with @apply) if provided
+  if (extraClasses) {
+    stylesToProcess += extraClasses
   }
 
   try {
@@ -55,7 +62,7 @@ app.post('/generate', async (req, res) => {
     })
 
     const css = result.css
-    cache.set(html, css)
+    cache.set(cacheKey, css)
     res.send(css)
   } catch (error) {
     console.error(error)
