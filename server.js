@@ -29,7 +29,7 @@ app.post('/generate', async (req, res) => {
   const { html, includeBase, extraClasses } = req.body
 
   if (!html) {
-    return res.status(400).send('html_is_required')
+    return res.status(422).send({ errors: ['html_is_required'] })
   }
 
   // Check if the result is in the cache
@@ -65,8 +65,16 @@ app.post('/generate', async (req, res) => {
     cache.set(cacheKey, css)
     res.send(css)
   } catch (error) {
-    console.error(error)
-    res.status(500).send('Failed to process CSS')
+    // console.error('error', error)
+
+    let errorParsing = ''
+
+    if (error && error.reason) {
+      errorParsing = error.reason
+      console.log('reason', errorParsing)
+    }
+
+    res.status(422).send({ errors: [errorParsing] })
   }
 })
 
