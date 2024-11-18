@@ -28,53 +28,63 @@ app.get('/', function (req, res) {
 app.post('/generate', async (req, res) => {
   const { html, includeBase, extraClasses } = req.body
 
-  if (!html) {
+  // Validate input
+  if (typeof html !== 'string' || html.trim() === '') {
     return res.status(422).send({ errors: ['html_is_required'] })
   }
 
+  if (extraClasses && typeof extraClasses !== 'string') {
+    return res.status(422).send({ errors: ['extra_classes_must_be_a_string'] })
+  }
+
+  // Generate cache key using a hash
+  const crypto = require('crypto')
+  const cacheKey = crypto
+    .createHash('sha256')
+    .update(JSON.stringify({ html, includeBase, extraClasses }))
+    .digest('hex')
+
   // Check if the result is in the cache
-  const cacheKey = includeBase
-    ? `base_${html}_${extraClasses || ''}`
-    : `${html}_${extraClasses || ''}`
   const cachedResult = cache.get(cacheKey)
   if (cachedResult) {
     return res.send(cachedResult)
   }
 
-  let stylesToProcess = '@import "tailwindcss/components"; @import "tailwindcss/utilities";'
+  // Generate styles to process
+  let stylesToProcess = `
+    @import "tailwindcss/components";
+    @import "tailwindcss/utilities";
+  `
   if (includeBase) {
-    stylesToProcess = '@import "tailwindcss/base";' + stylesToProcess
+    stylesToProcess = `@import "tailwindcss/base";` + stylesToProcess
   }
 
-  // Add the extra styles (styles with @apply) if provided
   if (extraClasses) {
-    stylesToProcess += extraClasses
+    if (/^[\s\S]*\{\s*@apply[\s\S]*;\s*\}[\s\S]*$/m.test(extraClasses)) {
+      stylesToProcess += `
+        ${extraClasses}
+      `
+    } else {
+      console.warn('Invalid extraClasses format, ignoring input:', extraClasses)
+    }
   }
 
   try {
     const result = await postcss([
       tailwindcss({
-        mode: 'jit',
         content: [{ raw: html, extension: 'html' }],
       }),
-    ]).process(stylesToProcess, {
-      from: undefined,
-    })
+    ]).process(stylesToProcess, { from: undefined })
 
     const css = result.css
     cache.set(cacheKey, css)
     res.send(css)
   } catch (error) {
-    // console.error('error', error)
+    console.error('Error processing Tailwind CSS:', error)
 
-    let errorParsing = ''
-
-    if (error && error.reason) {
-      errorParsing = error.reason
-      console.log('reason', errorParsing)
-    }
-
-    res.status(422).send({ errors: [errorParsing] })
+    res.status(422).send({
+      errors: [error.reason || error.message || 'Unknown error occurred'],
+    })
   }
 })
 
