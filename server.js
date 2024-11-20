@@ -51,15 +51,13 @@ app.post('/generate', async (req, res) => {
   }
 
   // Generate styles to process
-  let stylesToProcess = `
-    @import "tailwindcss/components";
-    @import "tailwindcss/utilities";
-  `
+  let stylesToProcess = ' @tailwind components; @tailwind utilities; '
   if (includeBase) {
-    stylesToProcess = `@import "tailwindcss/base";` + stylesToProcess
+    stylesToProcess = ' @tailwind base; ' + stylesToProcess
   }
 
-  if (extraClasses) {
+  if (extraClasses && extraClasses.length > 0) {
+    console.log('extraClasses', extraClasses)
     if (/^[\s\S]*\{\s*@apply[\s\S]*;\s*\}[\s\S]*$/m.test(extraClasses)) {
       stylesToProcess += `
         ${extraClasses}
