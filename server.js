@@ -28,6 +28,8 @@ app.get('/', function (req, res) {
 app.post('/generate', async (req, res) => {
   const { html, includeBase, extraClasses } = req.body
 
+  // await new Promise((resolve) => setTimeout(resolve, 2720))
+
   // Validate input
   if (typeof html !== 'string' || html.trim() === '') {
     return res.status(422).send({ errors: ['html_is_required'] })
