@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "cssnano": "^7.0.6",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "lru-cache": "^10.0.1",

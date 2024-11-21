@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const postcss = require('postcss')
 const tailwindcss = require('tailwindcss')
+const cssnano = require('cssnano')
 require('dotenv').config()
 
 const app = express()
@@ -74,6 +75,7 @@ app.post('/generate', async (req, res) => {
       tailwindcss({
         content: [{ raw: html, extension: 'html' }],
       }),
+      cssnano(),
     ]).process(stylesToProcess, { from: undefined })
 
     const css = result.css
