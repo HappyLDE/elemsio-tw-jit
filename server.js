@@ -4,6 +4,8 @@ const postcss = require('postcss')
 const tailwindcss = require('tailwindcss')
 const cssnano = require('cssnano')
 require('dotenv').config()
+const crypto = require('crypto')
+const { LRUCache } = require('lru-cache')
 
 const app = express()
 
@@ -14,8 +16,6 @@ app.use(cors())
 
 const PORT = Number(process.env.PORT) || 3336
 const CACHE_SIZE = Number(process.env.CACHE_SIZE) || 500
-
-const { LRUCache } = require('lru-cache')
 
 const cacheOptions = { max: CACHE_SIZE }
 const cache = new LRUCache(cacheOptions)
@@ -39,7 +39,7 @@ app.post('/generate', async (req, res) => {
   }
 
   // Generate cache key using a hash
-  const crypto = require('crypto')
+
   const cacheKey = crypto
     .createHash('sha256')
     .update(JSON.stringify({ html, includeBase, extraClasses }))
