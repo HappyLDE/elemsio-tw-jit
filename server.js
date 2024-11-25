@@ -29,15 +29,13 @@ app.get('/', function (req, res) {
 app.post('/generate', async (req, res) => {
   const { html, includeBase, extraClasses } = req.body
 
-  // await new Promise((resolve) => setTimeout(resolve, 2720))
-
   // Validate input
   if (typeof html !== 'string' || html.trim() === '') {
     return res.status(422).send({ errors: ['html_is_required'] })
   }
 
-  if (extraClasses && typeof extraClasses !== 'string') {
-    return res.status(422).send({ errors: ['extra_classes_must_be_a_string'] })
+  if (extraClasses && !Array.isArray(extraClasses)) {
+    return res.status(422).send({ errors: ['extra_classes_must_be_an_array'] })
   }
 
   // Generate cache key using a hash
@@ -60,13 +58,45 @@ app.post('/generate', async (req, res) => {
   }
 
   if (extraClasses && extraClasses.length > 0) {
-    console.log('extraClasses', extraClasses)
-    if (/^[\s\S]*\{\s*@apply[\s\S]*;\s*\}[\s\S]*$/m.test(extraClasses)) {
-      stylesToProcess += `
-        ${extraClasses}
-      `
-    } else {
-      console.warn('Invalid extraClasses format, ignoring input:', extraClasses)
+    // Build valid styles from extraClasses
+    for (const extraClass of extraClasses) {
+      const { name, classesArray } = extraClass
+
+      if (typeof name !== 'string' || !Array.isArray(classesArray)) {
+        console.warn(`Skipping invalid extraClass: ${JSON.stringify(extraClass)}`)
+        continue
+      }
+
+      const validClasses = []
+
+      for (const cls of classesArray) {
+        try {
+          // Validate the class by processing it with PostCSS
+          await postcss([
+            tailwindcss({
+              content: [{ raw: html, extension: 'html' }],
+            }),
+          ]).process(
+            `
+            .test-class {
+              @apply ${cls};
+            }
+          `,
+            { from: undefined }
+          )
+          validClasses.push(cls) // Add valid class
+        } catch (err) {
+          console.warn(`Invalid class '${cls}' skipped.`)
+        }
+      }
+
+      if (validClasses.length > 0) {
+        stylesToProcess += `
+          ${name} {
+            @apply ${validClasses.join(' ')};
+          }
+        `
+      }
     }
   }
 
