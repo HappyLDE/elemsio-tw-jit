@@ -1,8 +1,8 @@
 # elemsio-tw-jit
 
-Elemsio TailwindCSS JIT Compiler that returns purged Tailwind CSS classes and their definitions, minimized!
+TailwindCSS JIT Compiler that returns purged Tailwind CSS classes and their definitions, minimized!
 
-# usage
+# Usage
 
 classesStr can be the whole HTML page code
 
